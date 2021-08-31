@@ -1,5 +1,4 @@
 require 'sql-parser'
-require 'bcrypt'
 
 module SQLParser
   class SQLVisitor
@@ -58,10 +57,33 @@ table_name = nil
 fields = []
 table_definitions = {}
 
+require 'bcrypt'
+password = ::BCrypt::Password.create('123456')
+clients_index = 0
+managers_index = 0
+workers_index = 0
+sysadmins_index = 0
 rules = {
   clients: {
-    encrypted_password: -> (_) { ::BCrypt::Password.create('123456') },
+    email: -> (_) { clients_index += 1; "client#{clients_index}@example.com" },
+    encrypted_password: -> (_) { password },
     confirmation_token: nil,
+    reset_password_token: nil,
+  },
+  managers: {
+    email: -> (_) { managers_index += 1; "manager#{managers_index}@example.com" },
+    encrypted_password: -> (_) { password },
+    reset_password_token: nil,
+    invitation_token: nil,
+  },
+  workers: {
+    email: -> (_) { workers_index += 1; "worker#{workers_index}@example.com" },
+    encrypted_password: -> (_) { password },
+    reset_password_token: nil,
+  },
+  system_admins: {
+    email: -> (_) { sysadmins_index += 1; "admin#{sysadmins_index}@example.com" },
+    encrypted_password: -> (_) { password },
     reset_password_token: nil,
   }
 }
@@ -95,8 +117,17 @@ dump.each do |line|
       table = m[:table_name].to_sym
       if rules.keys.include? table
         table_rules = rules[table]
-        ast = parser.scan_str(line.delete_suffix(";\n"))
+        start_at = Time.new
+        ast = begin
+          parser.scan_str(line.delete_suffix(";\n"))
+        rescue Racc::ParseError => e
+          puts "Error on `#{table}`"
+          puts parser.inspect
+          raise
+        end
+        puts "Parsed `#{table}` in #{Time.now - start_at}s"
 
+        start_at = Time.new
         ast.in_values_list.values.each do |in_value_list|
           in_value_list.values = in_value_list.values.map.with_index do |in_value, index|
             field = table_definitions[table.to_s].fields[index].to_sym
@@ -115,6 +146,7 @@ dump.each do |line|
           end
         end
 
+        puts "Processed `#{table}` in #{Time.now - start_at}s"
         out_buf = ast.to_sql + ";\n"
       end
 
