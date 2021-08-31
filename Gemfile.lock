@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/wildfiler/sql-parser.git
-  revision: 5c6ad565a07f5b0d696c54135fd96eecfce379fe
+  revision: 43ce8496d6afaf6acd7c11e8e9483ff8c4f64857
   branch: multi_values_insert
   specs:
     sql-parser (0.26.0)
