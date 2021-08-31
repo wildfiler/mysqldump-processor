@@ -137,7 +137,28 @@ dump.each do |line|
             rule = rules[table][field]
             case rule
             when Proc
-              in_value.class.new(rule.(in_value.value))
+              case in_value
+              when SQLParser::Statement::Null
+                new_value = rule.(nil)
+                case new_value
+                when String
+                  SQLParser::Statement::String.new(new_value)
+                when Integer
+                  SQLParser::Statement::Integer.new(new_value)
+                when Float
+                  SQLParser::Statement::Integer.new(new_value)
+                when true
+                  SQLParser::Statement::True.new
+                when false
+                  SQLParser::Statement::False.new
+                when nil
+                  SQLParser::Statement::Null.new
+                else
+                  raise 'Unknown column type'
+                end
+              else
+                in_value.class.new(rule.(in_value.value))
+              end
             when nil
               SQLParser::Statement::Null.new
             else
