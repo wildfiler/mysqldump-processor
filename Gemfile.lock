@@ -1,0 +1,23 @@
+GIT
+  remote: https://github.com/wildfiler/sql-parser.git
+  revision: b3dd6124d97d452fca7256eede2109a4733978d1
+  branch: multi_values_insert
+  specs:
+    sql-parser (0.26.0)
+      racc
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bcrypt (3.1.16)
+    racc (1.5.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bcrypt
+  sql-parser!
+
+BUNDLED WITH
+   2.1.4
